@@ -28,7 +28,7 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag mystictide/tunes:latest
+      run: docker build . --file Dockerfile --tag mystictide/boox-server:latest
     - name: docker push
       run: |
-        docker push mystictide/tunes:latest
+        docker push mystictide/boox-server:latest
