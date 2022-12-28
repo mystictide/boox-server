@@ -1,0 +1,110 @@
+﻿using boox.api.Helpers;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
+using boox.api.Infrasructure.Models.Users;
+using boox.api.Infrasructure.Models.Returns;
+using boox.api.Infrastructure.Models.Helpers;
+using boox.api.Infrastructure.Managers.Users;
+
+namespace boox.api.Controllers
+{
+    [ApiController]
+    [Route("auth")]
+    public class AuthController : ControllerBase
+    {
+        private readonly IOptions<AppSettings> _settings;
+
+        public AuthController(IOptions<AppSettings> settings)
+        {
+            _settings = settings;
+        }
+
+        [HttpPost]
+        [Route("register")]
+        public async Task<IActionResult> Register([FromBody] Users user)
+        {
+            try
+            {
+                var data = await new UserManager(_settings).Register(user);
+                var userData = new UserReturn();
+                userData.Username = data.Username;
+                userData.Email = data.Email;
+                userData.Token = data.Token;
+                return Ok(userData);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPost]
+        [Route("login")]
+        public async Task<IActionResult> Login([FromBody] Users user)
+        {
+            try
+            {
+                var data = await new UserManager(_settings).Login(user);
+                var userData = new UserReturn();
+                userData.ID = data.ID;
+                userData.Username = data.Username;
+                userData.Email = data.Email;
+                userData.Token = data.Token;
+                return Ok(userData);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPost]
+        [Route("cmail")]
+        public async Task<IActionResult> CheckExistingEmail([FromBody] string email)
+        {
+            try
+            {
+                bool exists;
+                var userID = AuthHelpers.CurrentUserID(HttpContext, _settings.Value.Secret);
+                if (userID.ToString() == "000000000000000000000000")
+                {
+                    exists = await new UserManager(_settings).CheckEmail(email, null);
+                }
+                else
+                {
+                    exists = await new UserManager(_settings).CheckEmail(email, userID);
+                }
+                return Ok(exists);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpPost]
+        [Route("cusername")]
+        public async Task<IActionResult> checkExistingUsername([FromBody] string username)
+        {
+            try
+            {
+                bool exists;
+                var userID = AuthHelpers.CurrentUserID(HttpContext, _settings.Value.Secret);
+                if (userID.ToString() == "000000000000000000000000")
+                {
+                    exists = await new UserManager(_settings).CheckUsername(username, null);
+                }
+                else
+                {
+                    exists = await new UserManager(_settings).CheckUsername(username, userID);
+                }
+
+                return Ok(exists);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+    }
+}
