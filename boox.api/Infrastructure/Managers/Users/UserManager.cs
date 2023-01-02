@@ -1,31 +1,26 @@
 ﻿using System.Text;
-using MongoDB.Bson;
 using System.Security.Claims;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using boox.api.Infrastructure.Models.Helpers;
 using boox.api.Infrastructure.Data.Repo.User;
 using boox.api.Infrastructure.Data.Interface.User;
 using boox.api.Infrasructure.Models.Users.Settings;
+using boox.api.Infrastructure.Models.Helpers;
 
 namespace boox.api.Infrastructure.Managers.Users
 {
-    public class UserManager : IUsers
+    public class UserManager : AppSettings, IUsers
     {
         private readonly IUsers _repo;
-        private readonly IOptions<AppSettings> _settings;
-
-        public UserManager(IOptions<AppSettings> settings)
+        public UserManager()
         {
-            _repo = new UserRepository(settings);
-            _settings = settings;
+            _repo = new UserRepository();
         }
 
         private string generateToken(Infrasructure.Models.Users.Users user)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_settings.Value.Secret);
+            var key = Encoding.ASCII.GetBytes(Secret);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[] {
@@ -93,38 +88,39 @@ namespace boox.api.Infrastructure.Managers.Users
                 user.Username = result.Username;
                 user.Email = result.Email;
                 user.Token = generateToken(result);
+                user.Addresses = result.Addresses;
                 return user;
             }
 
             throw new Exception("Invalid credentials");
         }
 
-        public async Task<bool> CheckEmail(string Email, ObjectId? UserID)
+        public async Task<bool> CheckEmail(string Email, int? UserID)
         {
             return await _repo.CheckEmail(Email, UserID);
         }
 
-        public async Task<bool> CheckUsername(string Username, ObjectId? UserID)
+        public async Task<bool> CheckUsername(string Username, int? UserID)
         {
             return await _repo.CheckUsername(Username, UserID);
         }
 
-        public async Task<bool>? DeactivateAccount(ObjectId ID)
+        public async Task<bool>? DeactivateAccount(int ID)
         {
             return await _repo.DeactivateAccount(ID);
         }
 
-        public async Task<Infrasructure.Models.Users.Users>? Get(ObjectId? ID, string? Username)
+        public async Task<Infrasructure.Models.Users.Users>? Get(int? ID, string? Username)
         {
             return await _repo.Get(ID, Username);
         }
 
-        public async Task<bool>? UpdateEmail(ObjectId ID, string Email)
+        public async Task<bool>? UpdateEmail(int ID, string Email)
         {
             return await _repo.UpdateEmail(ID, Email);
         }
 
-        public async Task<bool>? ChangePassword(ObjectId UserID, string currentPassword, string newPassword)
+        public async Task<bool>? ChangePassword(int UserID, string currentPassword, string newPassword)
         {
             var salt = BCrypt.Net.BCrypt.GenerateSalt(10);
             currentPassword = BCrypt.Net.BCrypt.HashPassword(currentPassword, salt);
@@ -132,7 +128,7 @@ namespace boox.api.Infrastructure.Managers.Users
             return await _repo.ChangePassword(UserID, currentPassword, newPassword);
         }
 
-        public async Task<UserAddresses> ManageAddresses(UserAddresses entity, ObjectId userID)
+        public async Task<IEnumerable<UserAddresses>> ManageAddresses(UserAddresses entity, int userID)
         {
             return await _repo.ManageAddresses(entity, userID);
         }

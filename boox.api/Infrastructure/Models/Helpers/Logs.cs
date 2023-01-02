@@ -1,15 +1,13 @@
-﻿using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson.Serialization.IdGenerators;
+﻿using Dapper.Contrib.Extensions;
 
 namespace boox.api.Infrasructure.Models.Helpers
 {
+    [Table("Logs")]
     public class Logs
     {
-        [BsonId(IdGenerator = typeof(ObjectIdGenerator))]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public ObjectId? ID { get; set; }
-        public int UserID { get; set; }
+        [Key]
+        public int ID { get; set; }
+        public int? UserID { get; set; }
         public string? Message { get; set; }
         public string? Source { get; set; }
         public int Line { get; set; }

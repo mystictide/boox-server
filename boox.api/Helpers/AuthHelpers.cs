@@ -1,20 +1,19 @@
 ﻿using System.Text;
-using MongoDB.Bson;
-using MongoDB.Driver;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using boox.api.Infrastructure.Models.Helpers;
 
 namespace boox.api.Helpers
 {
-    public class AuthHelpers
+    public class AuthHelpers : AppSettings
     {
-        public static bool Authorize(HttpContext context, int AuthorizedAuthType, string secret)
+        public static bool Authorize(HttpContext context, int AuthorizedAuthType)
         {
-            return ValidateToken(ReadBearerToken(context), AuthorizedAuthType, secret);
+            return ValidateToken(ReadBearerToken(context), AuthorizedAuthType);
         }
-        public static ObjectId CurrentUserID(HttpContext context, string secret)
+        public static int CurrentUserID(HttpContext context)
         {
-            return ValidateUser(ReadBearerToken(context), secret);
+            return ValidateUser(ReadBearerToken(context));
         }
         public static string? ReadBearerToken(HttpContext context)
         {
@@ -35,12 +34,12 @@ namespace boox.api.Helpers
                 return null;
             }
         }
-        public static bool ValidateToken(string? encodedToken, int AuthorizedAuthType, string secret)
+        public static bool ValidateToken(string? encodedToken, int AuthorizedAuthType)
         {
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(secret);
+                var key = Encoding.ASCII.GetBytes(GetSecret());
                 tokenHandler.ValidateToken(encodedToken, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
@@ -67,12 +66,12 @@ namespace boox.api.Helpers
             }
         }
 
-        public static ObjectId ValidateUser(string? encodedToken, string secret)
+        public static int ValidateUser(string? encodedToken)
         {
             try
             {
                 var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(secret);
+                var key = Encoding.ASCII.GetBytes(GetSecret());
                 tokenHandler.ValidateToken(encodedToken, new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
@@ -83,11 +82,11 @@ namespace boox.api.Helpers
                 }, out SecurityToken validatedToken);
 
                 var jwtToken = (JwtSecurityToken)validatedToken;
-                return new ObjectId(jwtToken.Claims.First(x => x.Type == "id").Value);
+                return int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
             }
             catch (Exception)
             {
-                return new ObjectId();
+                return 0;
             }
         }
     }

@@ -1,19 +1,33 @@
-﻿using MongoDB.Driver;
+﻿using Npgsql;
+using System.Data;
 
 namespace boox.api.Infrastructure.Models.Helpers
 {
     public class AppSettings
     {
         public string Secret { get; set; }
-        public static string connectionString { get; set; }
-        public static string dbName { get; set; }
 
-        public static IMongoDatabase GetDB
+        public static string GetSecret()
+        {
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile(Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json"), optional: false)
+                .Build();
+            return configuration.GetSection("AppSettings").GetSection("Secret").Value;
+        }
+        public static string GetConnectionString()
+        {
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile(Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json"), optional: false)
+                .Build();
+            return configuration.GetSection("AppSettings").GetSection("connectionString").Value;
+        }
+
+        public static IDbConnection GetConnection
         {
             get
             {
-                var client = new MongoClient(connectionString);
-                return client.GetDatabase(dbName);
+                var conn = new NpgsqlConnection(GetConnectionString());
+                return conn;
             }
         }
     }

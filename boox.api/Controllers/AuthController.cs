@@ -1,9 +1,7 @@
 ﻿using boox.api.Helpers;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using boox.api.Infrasructure.Models.Users;
 using boox.api.Infrasructure.Models.Returns;
-using boox.api.Infrastructure.Models.Helpers;
 using boox.api.Infrastructure.Managers.Users;
 
 namespace boox.api.Controllers
@@ -12,20 +10,13 @@ namespace boox.api.Controllers
     [Route("auth")]
     public class AuthController : ControllerBase
     {
-        private readonly IOptions<AppSettings> _settings;
-
-        public AuthController(IOptions<AppSettings> settings)
-        {
-            _settings = settings;
-        }
-
         [HttpPost]
         [Route("register")]
         public async Task<IActionResult> Register([FromBody] Users user)
         {
             try
             {
-                var data = await new UserManager(_settings).Register(user);
+                var data = await new UserManager().Register(user);
                 var userData = new UserReturn();
                 userData.Username = data.Username;
                 userData.Email = data.Email;
@@ -44,12 +35,13 @@ namespace boox.api.Controllers
         {
             try
             {
-                var data = await new UserManager(_settings).Login(user);
+                var data = await new UserManager().Login(user);
                 var userData = new UserReturn();
                 userData.ID = data.ID;
                 userData.Username = data.Username;
                 userData.Email = data.Email;
                 userData.Token = data.Token;
+                userData.Addresses = data.Addresses;
                 return Ok(userData);
             }
             catch (Exception ex)
@@ -65,14 +57,14 @@ namespace boox.api.Controllers
             try
             {
                 bool exists;
-                var userID = AuthHelpers.CurrentUserID(HttpContext, _settings.Value.Secret);
-                if (userID.ToString() == "000000000000000000000000")
+                var userID = AuthHelpers.CurrentUserID(HttpContext);
+                if (userID < 1)
                 {
-                    exists = await new UserManager(_settings).CheckEmail(email, null);
+                    exists = await new UserManager().CheckEmail(email, null);
                 }
                 else
                 {
-                    exists = await new UserManager(_settings).CheckEmail(email, userID);
+                    exists = await new UserManager().CheckEmail(email, userID);
                 }
                 return Ok(exists);
             }
@@ -89,14 +81,14 @@ namespace boox.api.Controllers
             try
             {
                 bool exists;
-                var userID = AuthHelpers.CurrentUserID(HttpContext, _settings.Value.Secret);
-                if (userID.ToString() == "000000000000000000000000")
+                var userID = AuthHelpers.CurrentUserID(HttpContext);
+                if (userID < 1)
                 {
-                    exists = await new UserManager(_settings).CheckUsername(username, null);
+                    exists = await new UserManager().CheckUsername(username, null);
                 }
                 else
                 {
-                    exists = await new UserManager(_settings).CheckUsername(username, userID);
+                    exists = await new UserManager().CheckUsername(username, userID);
                 }
 
                 return Ok(exists);

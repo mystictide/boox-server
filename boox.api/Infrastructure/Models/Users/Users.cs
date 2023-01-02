@@ -1,23 +1,21 @@
-﻿using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson.Serialization.IdGenerators;
-using boox.api.Infrasructure.Models.Users.Settings;
+﻿using boox.api.Infrasructure.Models.Users.Settings;
+using Dapper.Contrib.Extensions;
 
 namespace boox.api.Infrasructure.Models.Users
 {
+    [Table("Users")]
     public class Users
     {
-        [BsonId(IdGenerator = typeof(ObjectIdGenerator))]
-        [BsonRepresentation(BsonType.ObjectId)]
-        public ObjectId? ID { get; set; }
+        [Key]
+        public int ID { get; set; }
         public string? Username { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
         public int? AuthType { get; set; }
 
-        [BsonIgnore]
+        [Write(false)]
         public string? Token { get; set; }
-        [BsonIgnore]
+        [Write(false)]
         public IEnumerable<UserAddresses>? Addresses { get; set; }
     }
 }

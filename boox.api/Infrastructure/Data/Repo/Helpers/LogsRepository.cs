@@ -1,33 +1,32 @@
-﻿using MongoDB.Driver;
-using System.Diagnostics;
+﻿using System.Diagnostics;
+using Dapper.Contrib.Extensions;
 using boox.api.Infrasructure.Models.Helpers;
 using boox.api.Infrastructure.Models.Helpers;
 using boox.api.Infrastructure.Data.Interface.Helpers;
-using Microsoft.Extensions.Options;
 
 namespace boox.api.Infrastructure.Data.Repo.Helpers
 {
     public class LogsRepository : AppSettings, ILogs
     {
-        private readonly IOptions<AppSettings> _settings;
+        //private readonly IOptions<AppSettings> _settings;
 
-        public LogsRepository(IOptions<AppSettings>? settings = null)
-        {
-            _settings = settings;
-        }
-
-        private static IMongoCollection<Logs> collection = GetDB.GetCollection<Logs>("logs");
+        //public LogsRepository(IOptions<AppSettings> settings)
+        //{
+        //    _settings = settings;
+        //}
 
         public async Task<int> Add(Logs entity)
         {
             try
             {
-                await collection.InsertOneAsync(entity);
-                return 1;
+                using (var con = GetConnection)
+                {
+                    return await con.InsertAsync(entity);
+                }
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                string a = ex.Message;
+                string a = exception.Message;
                 return 0;
             }
         }
