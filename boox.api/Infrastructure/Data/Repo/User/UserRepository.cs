@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using static Dapper.SqlMapper;
 using boox.api.Infrasructure.Models.Users;
 using boox.api.Infrastructure.Models.Helpers;
 using boox.api.Infrastructure.Data.Repo.Helpers;
@@ -22,12 +23,9 @@ namespace boox.api.Infrastructure.Data.Repo.User
                 param.Add("@AuthType", entity.AuthType);
 
                 string query = $@"
-                DECLARE  @result table(ID Int, Email nvarchar(MAX), Username nvarchar(100), Password nvarchar(MAX), AuthType Int, IsActive bit)
-	                    INSERT INTO Users (Email, Username, Password, AuthType, IsActive)
-	                        OUTPUT INSERTED.* INTO @result
-	                        VALUES (@Email, @Username, @Password, 1, 1)
-                SELECT *
-                FROM @result t";
+                INSERT INTO users (email, username, password, authType)
+	                VALUES (@Email, @Username, @Password, 1)
+                RETURNING *;";
 
                 using (var con = GetConnection)
                 {
@@ -48,19 +46,17 @@ namespace boox.api.Infrastructure.Data.Repo.User
             try
             {
                 DynamicParameters param = new DynamicParameters();
-                param.Add("@Email", entity.Email);
-
-                string WhereClause = @" WHERE (t.Email like '%' + @Email + '%')";
+                string WhereClause = $"WHERE (t.email like '%{entity.Email}%');";
 
                 string query = $@"
                 SELECT *
-                FROM Users t
-                {WhereClause}";
+                FROM users t
+                {WhereClause};";
 
                 string addQuery = $@"
                 SELECT *
-                FROM UserAddresses t
-                WHERE UserID = @ID";
+                FROM useraddresses t
+                WHERE userid = @ID;";
 
                 using (var con = GetConnection)
                 {
@@ -87,16 +83,16 @@ namespace boox.api.Infrastructure.Data.Repo.User
             if (UserID.HasValue)
             {
                 Query = @"
-                SELECT CASE WHEN COUNT(ID) > 0 THEN 1 ELSE 0 END
-                FROM Users 
-                WHERE Email = @Email AND NOT (ID = @UserID)";
+                SELECT CASE WHEN COUNT(id) > 0 THEN 1 ELSE 0 END
+                FROM users 
+                WHERE email = @Email AND NOT (id = @UserID);";
             }
             else
             {
                 Query = @"
-                SELECT CASE WHEN COUNT(ID) > 0 THEN 1 ELSE 0 END
-                FROM Users 
-                WHERE Email = @Email";
+                SELECT CASE WHEN COUNT(id) > 0 THEN 1 ELSE 0 END
+                FROM users 
+                WHERE email = @Email;";
             }
 
             using (var con = GetConnection)
@@ -116,16 +112,16 @@ namespace boox.api.Infrastructure.Data.Repo.User
             if (UserID.HasValue)
             {
                 Query = @"
-                SELECT CASE WHEN COUNT(ID) > 0 THEN 1 ELSE 0 END
-                FROM Users 
-                WHERE Username = @Username AND NOT (ID = @UserID)";
+                SELECT CASE WHEN COUNT(id) > 0 THEN 1 ELSE 0 END
+                FROM users 
+                WHERE username = @Username AND NOT (id = @UserID);";
             }
             else
             {
                 Query = @"
-                SELECT CASE WHEN COUNT(ID) > 0 THEN 1 ELSE 0 END
-                FROM Users 
-                WHERE Username = @Username";
+                SELECT CASE WHEN COUNT(id) > 0 THEN 1 ELSE 0 END
+                FROM users 
+                WHERE username = @Username;";
             }
 
             using (var con = GetConnection)
@@ -143,9 +139,9 @@ namespace boox.api.Infrastructure.Data.Repo.User
                 param.Add("@ID", ID);
 
                 string query = $@"
-                UPDATE Users
-                SET IsActive = 0
-                WHERE ID = @ID";
+                UPDATE users
+                SET isactive = 0
+                WHERE id = @ID;";
 
                 using (var connection = GetConnection)
                 {
@@ -166,14 +162,13 @@ namespace boox.api.Infrastructure.Data.Repo.User
             {
                 DynamicParameters param = new DynamicParameters();
                 param.Add("@ID", ID);
-                param.Add("@Username", Username);
 
-                string WhereClause = @" WHERE t.ID = @ID OR (t.Username like '%' + @Username + '%')";
+                string WhereClause = $" WHERE t.id = @ID OR (t.username like '%{Username}%')";
 
                 string query = $@"
                 SELECT *
-                FROM Users t
-                {WhereClause}";
+                FROM users t
+                {WhereClause};";
 
                 using (var con = GetConnection)
                 {
@@ -188,29 +183,30 @@ namespace boox.api.Infrastructure.Data.Repo.User
             }
         }
 
-        public async Task<bool>? UpdateEmail(int ID, string Email)
+        public async Task<string>? UpdateEmail(int ID, string Email)
         {
             try
             {
                 DynamicParameters param = new DynamicParameters();
                 param.Add("@ID", ID);
-                param.Add("@Mail", Email);
+                param.Add("@Email", Email);
 
                 string query = $@"
-                UPDATE Users
-                SET Email = @Email
-                WHERE ID = @ID";
+                UPDATE users
+                SET email = @Email
+                WHERE id = @ID
+                RETURNING email;";
 
                 using (var connection = GetConnection)
                 {
-                    await connection.QueryFirstOrDefaultAsync<ProcessResult>(query, param);
-                    return true;
+                    var res = await connection.QueryFirstOrDefaultAsync<string>(query, param);
+                    return res;
                 }
             }
             catch (Exception ex)
             {
                 LogsRepository.CreateLog(ex);
-                return false;
+                return null;
             }
         }
 
@@ -220,18 +216,15 @@ namespace boox.api.Infrastructure.Data.Repo.User
             {
                 DynamicParameters param = new DynamicParameters();
                 param.Add("@ID", UserID);
-                param.Add("@currentPassword", currentPassword);
-                param.Add("@Password", newPassword);
 
                 string query = $@"
-                IF EXISTS(SELECT * from Users WHERE ID = @ID AND Password = @currentPassword)
-                UPDATE Users
-                SET Password = @Password
-                WHERE ID = @ID";
+                UPDATE users
+                SET password = '{newPassword}'
+                WHERE id = @ID;";
 
                 using (var connection = GetConnection)
                 {
-                    await connection.QueryFirstOrDefaultAsync<ProcessResult>(query, param);
+                    var res = await connection.QueryAsync(query, param);
                     return true;
                 }
             }
@@ -251,9 +244,9 @@ namespace boox.api.Infrastructure.Data.Repo.User
                 param.Add("@Username", Username);
 
                 string query = $@"
-                UPDATE Users
-                SET Username = @Username
-                WHERE ID = @ID";
+                UPDATE users
+                SET username = @Username
+                WHERE id = @ID;";
 
                 using (var connection = GetConnection)
                 {
@@ -273,8 +266,8 @@ namespace boox.api.Infrastructure.Data.Repo.User
             try
             {
                 DynamicParameters param = new DynamicParameters();
-                param.Add("@userID", userID);
-                param.Add("@ID", entity.ID);
+                dynamic identity = entity.ID.HasValue ? entity.ID.Value : "default";
+                param.Add("@UserID", userID);
                 param.Add("@Country", entity.Country);
                 param.Add("@City", entity.City);
                 param.Add("@Address", entity.Address);
@@ -283,10 +276,44 @@ namespace boox.api.Infrastructure.Data.Repo.User
                 param.Add("@Title", entity.Title);
 
                 string query = $@"
-                IF EXISTS(SELECT * from Users WHERE ID = @ID AND Password = @currentPassword)
-                UPDATE Users
-                SET Password = @Password
-                WHERE ID = @ID";
+                INSERT INTO useraddresses (id, userid, title, phone, country, city, address, postal)
+	 	                VALUES ({identity}, @UserID, @Title, @Phone, @Country, @City, @Address, @Postal)
+                ON CONFLICT (id, userid) DO UPDATE 
+                SET title = @Title,
+	      	             phone = @Phone,
+	      	             country = @Country,
+	      	             city = @City,
+	      	             address = @Address,
+	      	             postal = @Postal;
+                SELECT *
+                FROM useraddresses t
+                WHERE t.userid = @UserID;";
+
+                using (var connection = GetConnection)
+                {
+                    var res = await connection.QueryAsync<UserAddresses>(query, param);
+                    return res;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogsRepository.CreateLog(ex);
+                return null;
+            }
+        }
+        public async Task<IEnumerable<UserAddresses>> DeleteAddress(int ID, int userID)
+        {
+            try
+            {
+                DynamicParameters param = new DynamicParameters();
+                param.Add("@ID", ID);
+                param.Add("@UserID", userID);
+
+                string query = $@"
+                DELETE FROM useraddresses t where t.id = @ID and t.userid = @UserID;
+                SELECT *
+                FROM useraddresses t
+                WHERE t.userid = @UserID;";
 
                 using (var connection = GetConnection)
                 {

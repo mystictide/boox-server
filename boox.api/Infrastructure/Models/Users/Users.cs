@@ -3,11 +3,11 @@ using Dapper.Contrib.Extensions;
 
 namespace boox.api.Infrasructure.Models.Users
 {
-    [Table("Users")]
+    [Table("users")]
     public class Users
     {
         [Key]
-        public int ID { get; set; }
+        public int? ID { get; set; }
         public string? Username { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }

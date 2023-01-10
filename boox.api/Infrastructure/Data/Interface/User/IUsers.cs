@@ -11,8 +11,9 @@ namespace boox.api.Infrastructure.Data.Interface.User
         Task<Users>? Register(Users entity);
         Task<Users>? Get(int? ID, string? Username);
         Task<IEnumerable<UserAddresses>> ManageAddresses(UserAddresses entity, int userID);
+        Task<IEnumerable<UserAddresses>> DeleteAddress(int ID, int userID);
         Task<bool>? ChangePassword(int UserID, string currentPassword, string newPassword);
-        Task<bool>? UpdateEmail(int ID, string Email);
+        Task<string>? UpdateEmail(int ID, string Email);
         Task<bool>? DeactivateAccount(int ID);
     }
 }

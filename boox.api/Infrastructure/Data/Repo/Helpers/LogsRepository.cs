@@ -8,13 +8,6 @@ namespace boox.api.Infrastructure.Data.Repo.Helpers
 {
     public class LogsRepository : AppSettings, ILogs
     {
-        //private readonly IOptions<AppSettings> _settings;
-
-        //public LogsRepository(IOptions<AppSettings> settings)
-        //{
-        //    _settings = settings;
-        //}
-
         public async Task<int> Add(Logs entity)
         {
             try

@@ -2,7 +2,7 @@
 
 namespace boox.api.Infrasructure.Models.Helpers
 {
-    [Table("Logs")]
+    [Table("logs")]
     public class Logs
     {
         [Key]

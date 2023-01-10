@@ -37,7 +37,6 @@ namespace boox.api.Controllers
             {
                 var data = await new UserManager().Login(user);
                 var userData = new UserReturn();
-                userData.ID = data.ID;
                 userData.Username = data.Username;
                 userData.Email = data.Email;
                 userData.Token = data.Token;
