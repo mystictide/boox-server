@@ -12,6 +12,6 @@ namespace boox.api.Infrastructure.Data.Interface.Listings
         Task<Listing> ManageListing(Listing entity, int UserID);
         Task<IEnumerable<Photos>> ManagePhotos(Photos entity, int UserID);
         Task<IEnumerable<Photos>> DeletePhoto(int ID, int ListingID, int UserID);
-        Task<FilteredList<Listing>> FilteredList(FilteredList<Listing> request);
+        Task<FilteredList<Listing>> FilteredList(FilteredList<Listing> request, int? UserID);
     }
 }

@@ -37,7 +37,7 @@ namespace boox.api.Infrastructure.Data.Repo.Listings
             }
         }
 
-        public async Task<FilteredList<Listing>> FilteredList(FilteredList<Listing> request)
+        public async Task<FilteredList<Listing>> FilteredList(FilteredList<Listing> request, int? UserID)
         {
             try
             {
@@ -45,8 +45,42 @@ namespace boox.api.Infrastructure.Data.Repo.Listings
                 DynamicParameters param = new DynamicParameters();
                 param.Add("@PageSize", request.filter.pageSize);
 
-                string WhereClause = $" WHERE t.title like '%{request.filter.Keyword}%)";
-                string query_count = $@"  Select Count(t.id) from listing t {WhereClause}";
+                string WhereClause;
+                string selectedGenres = "";
+                #region whereClause
+                if (request.filter.Keyword != null && request.filter.Keyword != "null" && request.filter.Keyword != "")
+                {
+                    WhereClause = $@"WHERE LOWER(t.title) like LOWER('%{request.filter.Keyword}%')";
+                }
+                else
+                {
+                    WhereClause = @"WHERE t.title IS NOT NULL";
+                }
+                if (request.filterModel.Genres != null && request.filterModel.Genres != "")
+                {
+                    WhereClause += $@" AND id in (select listingid from listinggenresjunction l where l.genreid in ({request.filterModel.Genres}))";
+                    selectedGenres = $@"SELECT *
+                    FROM genres t
+                    WHERE id in ({request.filterModel.Genres})";
+                }
+                if (request.filterModel.Author != null && request.filterModel.Author != "")
+                {
+                    WhereClause += $@" AND t.author like LOWER('%{request.filterModel.Author}%')";
+                }
+                if (request.filterModel.Country != null && request.filterModel.Country != "")
+                {
+                    WhereClause += $@" AND t.country like '{request.filterModel.Country}'";
+                }
+                if (UserID.HasValue)
+                {
+                    WhereClause += $@" AND t.userid = {UserID}";
+                }
+                else
+                {
+                    WhereClause += @" AND isactive = true";
+                }
+                #endregion
+                string query_count = $@"Select Count(t.id) from listing t {WhereClause}";
 
                 string query = $@"
                 SELECT *
@@ -64,6 +98,10 @@ namespace boox.api.Infrastructure.Data.Repo.Listings
                     result.data = await con.QueryAsync<Listing>(query, param);
                     result.filter = request.filter;
                     result.filterModel = request.filterModel;
+                    if (request.filterModel.Genres != null && request.filterModel.Genres != "")
+                    {
+                        result.filterModel.Genre = await con.QueryAsync<Genres>(selectedGenres);
+                    }
                     return result;
                 }
             }
@@ -88,6 +126,10 @@ namespace boox.api.Infrastructure.Data.Repo.Listings
                 FROM listing t
                 {WhereClause};";
 
+                string gQuery = $@"
+                SELECT * from genres 
+                WHERE id in (select genreid from listinggenresjunction l where l.listingid = @ID);";
+
                 string pQuery = $@"
                 SELECT *
                 FROM photos t
@@ -96,6 +138,7 @@ namespace boox.api.Infrastructure.Data.Repo.Listings
                 using (var con = GetConnection)
                 {
                     var res = await con.QueryFirstOrDefaultAsync<Listing>(query, param);
+                    res.Genre = await con.QueryAsync<Genres>(gQuery, param);
                     res.Photos = await con.QueryAsync<Photos>(pQuery, param);
                     return res;
                 }
@@ -143,10 +186,8 @@ namespace boox.api.Infrastructure.Data.Repo.Listings
                 string gQuery = $@"
                 INSERT INTO listinggenresjunction (id, listingid, genreid)
 	 	                VALUES (default, @ID, @GenreID);
-                SELECT *,
-                (select name from genres where id = t.genreid)name
-                FROM listinggenresjunction t
-                WHERE t.listingid = @ID;";
+                SELECT * from genres 
+                WHERE id in (select genreid from listinggenresjunction l where l.listingid = @ID);";
 
                 string pQuery = $@"
                 SELECT *
@@ -156,8 +197,8 @@ namespace boox.api.Infrastructure.Data.Repo.Listings
                 using (var connection = GetConnection)
                 {
                     var res = await connection.QueryFirstOrDefaultAsync<Listing>(query, param);
-                    await connection.ExecuteAsync(gdQuery, param);
                     param.Add("@ID", res.ID);
+                    await connection.ExecuteAsync(gdQuery, param);
                     foreach (var item in entity.Genre)
                     {
                         param.Add("@GenreID", item.ID);
@@ -183,8 +224,8 @@ namespace boox.api.Infrastructure.Data.Repo.Listings
                 param.Add("@UserID", UserID);
 
                 string query = $@"
-                INSERT INTO listing (id, path, listingid, userid)
-	 	                VALUES (default, @Path, @ListingID, @UserID)
+                INSERT INTO photos (id, path, listingid, userid)
+	 	                VALUES (default, @Path, @ListingID, @UserID);
                 SELECT *
                 FROM photos t
                 WHERE t.listingid = @ListingID and t.userid = @UserID;";

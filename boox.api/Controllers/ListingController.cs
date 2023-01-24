@@ -1,5 +1,6 @@
 ﻿using boox.api.Helpers;
 using Microsoft.AspNetCore.Mvc;
+using boox.api.Infrasructure.Models.Helpers;
 using boox.api.Infrasructure.Models.Listings;
 using boox.api.Infrastructure.Models.Listings;
 using boox.api.Infrastructure.Managers.Listings;
@@ -16,6 +17,65 @@ namespace boox.api.Controllers
         public ListingController(IWebHostEnvironment env)
         {
             _env = env;
+        }
+
+        [HttpGet]
+        [Route("filter")]
+        public async Task<IActionResult> FilteredListing([FromQuery] Filter filter, [FromQuery] Listing? filterModel)
+        {
+            try
+            {
+                var model = filterModel ?? new Listing();
+                filter.pageSize = 25;
+                FilteredList<Listing> request = new FilteredList<Listing>()
+                {
+                    filter = filter,
+                    filterModel = model,
+                };
+                var result = await new ListingManager().FilteredList(request, null);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("filter/self")]
+        public async Task<IActionResult> FilteredSelfListing([FromQuery] Filter filter, [FromQuery] Listing? filterModel)
+        {
+            try
+            {
+                var model = filterModel ?? new Listing();
+                filter.pageSize = 25;
+                FilteredList<Listing> request = new FilteredList<Listing>()
+                {
+                    filter = filter,
+                    filterModel = model,
+                };
+                var result = await new ListingManager().FilteredList(request, AuthHelpers.CurrentUserID(HttpContext));
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("get/listing")]
+        public async Task<IActionResult> GetListing([FromQuery] int? ID)
+        {
+            try
+            {
+                var result = await new ListingManager().Get(ID);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         [HttpGet]
@@ -45,6 +105,40 @@ namespace boox.api.Controllers
                     return Ok(result);
                 }
                 return StatusCode(500, "Authorization failed");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("delete")]
+        public async Task<IActionResult> DeleteListing([FromQuery] int ID)
+        {
+            try
+            {
+                if (AuthHelpers.Authorize(HttpContext, AuthorizedAuthType))
+                {
+                    dynamic result = await new ListingManager().ToggleListing(ID, AuthHelpers.CurrentUserID(HttpContext));
+                    if (result)
+                    {
+                        var filterModel = new Listing();
+                        var filter = new Filter();
+                        filter.pageSize = 25;
+                        FilteredList<Listing> request = new FilteredList<Listing>()
+                        {
+                            filter = filter,
+                            filterModel = filterModel,
+                        };
+                        result = await new ListingManager().FilteredList(request, AuthHelpers.CurrentUserID(HttpContext));
+                    }
+                    return Ok(result);
+                }
+                else
+                {
+                    return StatusCode(500, "Authorization failed");
+                }
             }
             catch (Exception ex)
             {

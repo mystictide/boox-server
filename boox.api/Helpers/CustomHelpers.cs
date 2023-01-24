@@ -10,7 +10,7 @@ namespace boox.api.Helpers
             try
             {
                 Bitmap bmpReturn = null;
-                byte[] byteBuffer = Convert.FromBase64String(data);
+                byte[] byteBuffer = Convert.FromBase64String(data.Substring(data.IndexOf(",") + 1));
                 using (var ms = new MemoryStream(byteBuffer))
                 {
                     bmpReturn = (Bitmap)Bitmap.FromStream(ms);

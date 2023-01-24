@@ -20,9 +20,9 @@ namespace boox.api.Infrastructure.Managers.Listings
             return await _repo.DeletePhoto(ID, ListingID, UserID);
         }
 
-        public async Task<FilteredList<Listing>> FilteredList(FilteredList<Listing> request)
+        public async Task<FilteredList<Listing>> FilteredList(FilteredList<Listing> request, int? UserID)
         {
-            return await _repo.FilteredList(request);
+            return await _repo.FilteredList(request, UserID);
         }
 
         public async Task<Listing>? Get(int? ID)

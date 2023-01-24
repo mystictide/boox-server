@@ -22,5 +22,7 @@ namespace boox.api.Infrasructure.Models.Listings
         public IEnumerable<Photos>? Photos { get; set; }
         [Write(false)]
         public IEnumerable<Genres>? Genre { get; set; }
+        [Write(false)]
+        public string? Genres { get; set; }
     }
 }

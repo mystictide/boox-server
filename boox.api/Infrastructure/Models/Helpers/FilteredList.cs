@@ -1,4 +1,6 @@
-﻿namespace boox.api.Infrasructure.Models.Helpers
+﻿using boox.api.Infrastructure.Models.Listings;
+
+namespace boox.api.Infrasructure.Models.Helpers
 {
     public class FilteredList<T> where T : class
     {
@@ -18,22 +20,15 @@
             Keyword = "";
             pageSize = 10;
             page = 1;
-            isDetailSearch = false;
-            sortBy = new object();
         }
 
-        public string Keyword { get; set; }
+        public string? Keyword { get; set; }
 
         public int page { get; set; }
 
         public int pageSize { get; set; }
 
         public Page? pager { get; set; }
-
-        public bool isDetailSearch { get; set; }
-
-        public object sortBy { get; set; }
-
     }
     public class Page
     {
