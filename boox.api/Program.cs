@@ -47,7 +47,7 @@ if (app.Environment.IsDevelopment())
 }
 
 //app.UseMiddleware();
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseCors("AllowOrigin");
 app.UseRouting();
 
