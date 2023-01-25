@@ -1,21 +1,15 @@
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
-WORKDIR /app
+FROM mcr.microsoft.com/dotnet/sdk:6.0 as build-env
+WORKDIR /src
 EXPOSE 87
 EXPOSE 887
-
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
-WORKDIR /src
 COPY boox.api/*.csproj .
-COPY boox.api/ .
 RUN dotnet restore
-COPY . .
-WORKDIR /src/boox
-RUN dotnet build "boox.api.csproj" -c Release -o /app/build
+COPY boox.api/ .
+RUN dotnet publish -c Release -o /publish
 
-FROM build AS publish
-RUN dotnet publish "boox.api.csproj" -c Release -o /app/publish
-
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
+FROM mcr.microsoft.com/dotnet/aspnet:6.0 as runtime
+WORKDIR /publish
+EXPOSE 87
+EXPOSE 887
+COPY --from=build-env /publish .
 ENTRYPOINT ["dotnet", "boox.api.dll"]
