@@ -9,7 +9,7 @@ COPY boox.api/*.csproj .
 COPY boox.api/ .
 RUN dotnet restore
 COPY . .
-WORKDIR "/src/boox"
+WORKDIR /src/boox
 RUN dotnet publish -c Release -o /src/build
 
 FROM build AS publish
