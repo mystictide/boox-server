@@ -9,6 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 
 //JSON Serializer
+builder.WebHost.UseKestrel().UseUrls("http://*:477")
+.UseIISIntegration();
 builder.Services.AddControllersWithViews().AddNewtonsoftJson(options =>
 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore)
     .AddNewtonsoftJson(options => options.SerializerSettings.ContractResolver
@@ -50,7 +52,6 @@ if (app.Environment.IsDevelopment())
 //app.UseHttpsRedirection();
 app.UseCors("AllowOrigin");
 app.UseRouting();
-
 app.UseAuthentication();
 
 app.UseAuthorization();
