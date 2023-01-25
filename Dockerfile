@@ -10,10 +10,10 @@ COPY boox.api/ .
 RUN dotnet restore
 COPY . .
 WORKDIR /src/boox
-RUN dotnet publish -c Release -o /src/build
+RUN dotnet build "boox.api.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish -c Release -o /app/publish
+RUN dotnet publish "boox.api.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
