@@ -4,7 +4,6 @@ using boox.api.Infrasructure.Models.Helpers;
 using boox.api.Infrasructure.Models.Listings;
 using boox.api.Infrastructure.Models.Listings;
 using boox.api.Infrastructure.Managers.Listings;
-using boox.api.Infrastructure.Models.Helpers;
 
 namespace boox.api.Controllers
 {
@@ -206,14 +205,7 @@ namespace boox.api.Controllers
         {
             try
             {
-                if (AppSettings.GetConnectionString() != null)
-                {
-                    return Ok(AppSettings.GetConnectionString());
-                }
-                else
-                {
-                    return Ok("hit");
-                }
+                return Ok("hit");
             }
             catch (Exception ex)
             {
