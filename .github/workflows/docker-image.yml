@@ -13,6 +13,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+    - name: App Settings Variable Substitution
+      uses: microsoft/variable-substitution@v1
+      with:
+          files: '${{env.DOTNET_ROOT}}\boox-api\appsettings.json'
+      env:
+          AppSettings:Secret: ${{ secrets.SECRET }}
+          AppSettings:connectionString: ${{ secrets.CONNECTION_STRING }}
     - name: docker login
       env:
         DOCKER_USER: ${{ secrets.DOCKER_USER }}
