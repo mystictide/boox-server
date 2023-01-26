@@ -1,5 +1,6 @@
 using Newtonsoft.Json.Serialization;
 using boox.api.Infrastructure.Models.Helpers;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,12 +48,17 @@ if (app.Environment.IsDevelopment())
 
 //app.UseMiddleware();
 //app.UseHttpsRedirection();
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+           Path.Combine(builder.Environment.ContentRootPath, "media")),
+    RequestPath = "/static"
+});
+
 app.UseCors("AllowOrigin");
 app.UseRouting();
 app.UseAuthentication();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
