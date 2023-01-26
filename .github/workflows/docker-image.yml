@@ -15,8 +15,8 @@ jobs:
       with:
           files: '**/appsettings.json'
       env:
-          AppSettings:Secret: ${{ secrets.SECRET }}
-          AppSettings:connectionString: ${{ secrets.CONNECTION_STRING }}
+          AppSettings.Secret: ${{ secrets.SECRET }}
+          AppSettings.connectionString: ${{ secrets.CONNECTION_STRING }}
     - name: docker login
       env:
         DOCKER_USER: ${{ secrets.DOCKER_USER }}
