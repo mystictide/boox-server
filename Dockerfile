@@ -3,7 +3,7 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["boox.api/boox.api.csproj", "boox.api/", "boox.api/media/"]
+COPY ["boox.api/boox.api.csproj", "boox.api/"]
 RUN dotnet restore "boox.api/boox.api.csproj"
 COPY . .
 WORKDIR "/src/boox.api"
