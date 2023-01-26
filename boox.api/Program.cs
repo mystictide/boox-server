@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 
 //JSON Serializer
-builder.WebHost.UseKestrel().UseUrls("http://*:477")
+builder.WebHost.UseKestrel().UseUrls("http://+:477")
 .UseIISIntegration();
 builder.Services.AddControllersWithViews().AddNewtonsoftJson(options =>
 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore)
