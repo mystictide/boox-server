@@ -1,7 +1,5 @@
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 WORKDIR /app
-ENV ASPNETCORE_URLS=http://+:477
-EXPOSE 477
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
@@ -17,4 +15,6 @@ RUN dotnet publish "boox.api.csproj" -c Release -o /app/publish /p:UseAppHost=fa
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+EXPOSE 477
+ENV ASPNETCORE_URLS=http://+:477
 ENTRYPOINT ["dotnet", "boox.api.dll"]
