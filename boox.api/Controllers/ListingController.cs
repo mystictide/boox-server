@@ -198,5 +198,19 @@ namespace boox.api.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+
+        [HttpGet]
+        [Route("test")]
+        public async Task<IActionResult> Testing()
+        {
+            try
+            {
+                return Ok("Hit");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
     }
 }
